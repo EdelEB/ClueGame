@@ -41,12 +41,12 @@ class RoomEnum(Enum):
 room_access = {
     RoomEnum.KITCHEN: [RoomEnum.BALLROOM, RoomEnum.DINING_ROOM, RoomEnum.STUDY, RoomEnum.START],
     RoomEnum.BALLROOM: [RoomEnum.KITCHEN, RoomEnum.CONSERVATORY, RoomEnum.START],
-    RoomEnum.CONSERVATORY: [RoomEnum.BALLROOM, RoomEnum.LIBRARY, RoomEnum.LOUNGE, RoomEnum.START],
+    RoomEnum.CONSERVATORY: [RoomEnum.BALLROOM, RoomEnum.LOUNGE, RoomEnum.START],
     RoomEnum.DINING_ROOM: [RoomEnum.KITCHEN, RoomEnum.LOUNGE, RoomEnum.START],
     RoomEnum.BILLIARD_ROOM: [RoomEnum.LIBRARY, RoomEnum.BALLROOM, RoomEnum.START],
-    RoomEnum.LIBRARY: [RoomEnum.STUDY, RoomEnum.BILLIARD_ROOM, RoomEnum.CONSERVATORY, RoomEnum.START],
+    RoomEnum.LIBRARY: [RoomEnum.STUDY, RoomEnum.BILLIARD_ROOM, RoomEnum.START],
     RoomEnum.LOUNGE: [RoomEnum.DINING_ROOM, RoomEnum.HALL, RoomEnum.CONSERVATORY, RoomEnum.START],
-    RoomEnum.HALL: [RoomEnum.LOUNGE, RoomEnum.STUDY, RoomEnum.START],
+    RoomEnum.HALL: [RoomEnum.LOUNGE, RoomEnum.STUDY, RoomEnum.LIBRARY, RoomEnum.START],
     RoomEnum.STUDY: [RoomEnum.HALL, RoomEnum.LIBRARY, RoomEnum.KITCHEN, RoomEnum.START],
     RoomEnum.START: [RoomEnum.KITCHEN, RoomEnum.BALLROOM, RoomEnum.CONSERVATORY, RoomEnum.DINING_ROOM,
                      RoomEnum.LIBRARY, RoomEnum.LOUNGE, RoomEnum.HALL, RoomEnum.STUDY, RoomEnum.BILLIARD_ROOM]
