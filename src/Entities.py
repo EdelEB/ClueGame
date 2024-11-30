@@ -7,6 +7,11 @@ class Suggestion:
         self.weapon = weapon
         self.room = room
 
+    def __eq__(self, other):
+        if self.character == other.character and self.weapon == other.weapon and self.room == other.room:
+            return True
+        return False
+
     def __repr__(self):
         return f"Suggestion(Character: {self.character.name}, Weapon: {self.weapon.name}, Room: {self.room.name})"
 
@@ -18,6 +23,14 @@ class CharacterEnum(Enum):
     MRS_PEACOCK = 5
     MRS_WHITE = 6
 
+def assignCharacterEnum(player_input):
+    try:
+        x = int(player_input)
+        x = CharacterEnum(x)
+        return x
+    except:
+        return None
+
 class WeaponEnum(Enum):
     CANDLESTICK = 1
     KNIFE = 2
@@ -25,6 +38,14 @@ class WeaponEnum(Enum):
     REVOLVER = 4
     ROPE = 5
     WRENCH = 6
+
+def assignWeaponEnum(player_input):
+    try:
+        x = int(player_input)
+        x = WeaponEnum(x)
+        return x
+    except:
+        return None
 
 class RoomEnum(Enum):
     KITCHEN = 1
@@ -37,6 +58,14 @@ class RoomEnum(Enum):
     HALL = 8
     STUDY = 9
     START = 10
+
+def assignRoomEnum(player_input):
+    try:
+        x = int(player_input)
+        x = RoomEnum(x)
+        return x
+    except:
+        return None
 
 room_access = {
     RoomEnum.KITCHEN: [RoomEnum.BALLROOM, RoomEnum.DINING_ROOM, RoomEnum.STUDY, RoomEnum.START],

@@ -14,12 +14,11 @@ class Player():
         self.turn_index = turn_index
         self.hand = []
         self.location = RoomEnum.START
+        self.failed = False
 
     def getMoves(self):
         return room_access[self.location]
 
-    def makeMove(self, number):
-        print(f"move chosen: {number}")
 
 class ClueGame():
     def __init__(self, player_count):
@@ -27,6 +26,7 @@ class ClueGame():
         self.turn_index = 0
         self.solution = generateSolution()
         self.players = self.createPlayers(player_count)
+        self.winner = None
 
     def createPlayers(self, player_count):
         cards = all_cards.copy()
@@ -35,7 +35,7 @@ class ClueGame():
         cards.remove(self.solution.character)
         cards.remove(self.solution.weapon)
         cards.remove(self.solution.room)
-        print(cards)
+        #print([card.name for card in cards])
 
         players = []
         for i in range(player_count):
@@ -51,23 +51,89 @@ class ClueGame():
 
     def printGameState(self):
         printBoard()
-        print("Face up cards: ", [card.name for card in self.face_up_cards])
+        print("Face up cards: ", [card.name for card in self.face_up_cards], '\n')
         for player in self.players:
-            #if(player.turn_index == self.turn_index): print("Your Turn: ", end="")
-            print(f"{player.name} is in {player.location.name}");
-        print()
-        self.promptPlayer()
+            print(f"{player.name} in {player.location.name}\t\t", end="");
+        print('\n')
+        self.promptPlayerMove()
 
-    def promptPlayer(self):
+    def promptPlayerMove(self):
         player = self.players[self.turn_index]
         moves = player.getMoves()
         print(f"{player.name} to move. Current Location: {player.location.name}")
-        for index, move in enumerate(moves):
-            print(f"To move to {move.name}, type: {index}")
-        if(player.location == RoomEnum.START): print(f"To stay and make a Final Accusation type: -1")
-        else: print(f"To stay and make a suggestion type: -1")
-        self.players[self.turn_index].makeMove(input("Enter Move: "))
+        print(f"See the key below to see what inputs make what moves")
+        for index, move in enumerate(moves):    print(f"{move.name}: {move.value}", end="\t\t")
+        if(player.location == RoomEnum.START):  print(f"\nMake Final Accusation: -1")
+        else:                                   print(f"\nMake a suggestion: -1")
 
+        player_input = input("Enter Move: ")
+        while ( assignRoomEnum(player_input) not in moves ) and (player_input != '-1'):
+            player_input = input("Invalid Move. Try again: ")
+
+        player_input = int(player_input)
+        if player_input != -1:
+            self.players[self.turn_index].location = assignRoomEnum(player_input)
+
+        if self.players[self.turn_index].location == RoomEnum.START:
+            print(f"{player.name} Make Final Accusation:")
+            suggestion = self.promptSuggestion()
+            if suggestion == self.solution:
+                self.winner = self.players[self.turn_index]
+            else:
+                player.failed = True
+        else:
+            print(f"{player.name} Make Suggestion: You are in the {player.location.name}")
+            suggestion = self.promptSuggestion()
+            print(suggestion)
+            shown_card = self.proposeSuggestion(suggestion, self.nextPlayer(player))
+            if shown_card is None:
+                print("No player could show a card")
+            else:
+                print(f"{shown_card[0]} shows {shown_card[1]}")
+
+        self.turn_index = self.nextPlayer(player).turn_index
+
+    def promptSuggestion(self):
+        for weapon in list(WeaponEnum):
+            print(f"{weapon.name}: {weapon.value},", end="\t\t")
+        weapon_input = input("\nWeapon: ")
+        while assignWeaponEnum(weapon_input) is None:
+            weapon_input = input("Invalid Move. Try again: ")
+        weapon_input = assignWeaponEnum(weapon_input)
+
+        for character in list(CharacterEnum):
+            print(f"{character.name}: {character.value},", end="\t\t")
+        character_input = input("\nCulprit: ")
+        while assignCharacterEnum(character_input) is None:
+            character_input = input("Invalid Move. Try again: ")
+        character_input = assignCharacterEnum(character_input)
+
+        if self.players[self.turn_index].location == RoomEnum.START:
+            for room in list(RoomEnum):
+                print(f"{room.name}: {room.value},", end="\t\t")
+            room_input = input("\nRoom: ")
+            while assignRoomEnum(room_input) is None:
+                room_input = input("Invalid Move. Try again: ")
+            room_input = assignRoomEnum(room_input)
+        else:
+            room_input =  self.players[self.turn_index].location
+
+        return Suggestion(character_input, weapon_input, room_input)
+
+    def proposeSuggestion(self, suggestion, player):
+        while(player.turn_index != self.turn_index):
+           for item in [suggestion.weapon, suggestion.character, suggestion.room ]:
+                for card in player.hand:
+                    if item == card:
+                        return (player.name, card.name)
+           player = self.nextPlayer(player)
+        return None
+
+    def nextPlayer(self, player):
+        if player.turn_index == len(self.players)-1:
+            return self.players[0]
+        else:
+            return self.players[player.turn_index+1]
 
 def printBoard():
     print("""
