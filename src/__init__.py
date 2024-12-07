@@ -7,7 +7,7 @@ def main():
     while game.winner is None:
         game.printGameState()
 
-    print(f"Game Over Winner: {game.winner.name}")
+    print(f"Game Over Winner: {game.winner.name}\nFinal answer: {game.solution}")
 
 if __name__ == "__main__":
     main()
