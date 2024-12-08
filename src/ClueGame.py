@@ -64,6 +64,36 @@ class ClueGame():
         else: return self.promptHumanPlayerMove()
 
     def promptAIPlayerMove(self):
+        player = self.players[self.turn_index]
+        moves = player.getMoves()
+        print(f"{player.name}(AI) to move. Current Location: {player.location.name}")
+
+        ai_move = self.players[self.turn_index].ai_agent.getAIMove(player.location, moves)
+        if ai_move != -1:
+            self.players[self.turn_index].location = assignRoomEnum(ai_move)
+
+        if self.players[self.turn_index].location == RoomEnum.START:
+            print(f"{player.name}(AI) Making Final Accusation:")
+            suggestion = self.promptAISuggestion(player.location)
+            if suggestion == self.solution:
+                self.winner = self.players[self.turn_index]
+            else:
+                player.failed = True
+        else:
+            print(f"{player.name}(AI) Making Suggestion from the {player.location.name}")
+            suggestion = self.promptAISuggestion(player.location)
+            print(suggestion)
+            shown_card = self.proposeSuggestion(suggestion, self.nextPlayer(player))
+            if shown_card is None:
+                print("No player could show a card")
+                self.updateAIs("passed", suggestion, None)
+            else:
+                print(f"{shown_card[0].name} shows {shown_card[1].name}")
+                self.updateAIs("showMe", shown_card[0], shown_card[1])
+                self.updateAIs("show", shown_card[0], suggestion)
+
+        self.turn_index = self.nextPlayer(player).turn_index
+
         return None
 
     def promptHumanPlayerMove(self):
@@ -85,29 +115,29 @@ class ClueGame():
 
         if self.players[self.turn_index].location == RoomEnum.START:
             print(f"{player.name} Make Final Accusation:")
-            suggestion = self.promptSuggestion()
+            suggestion = self.promptHumanSuggestion()
             if suggestion == self.solution:
                 self.winner = self.players[self.turn_index]
             else:
                 player.failed = True
         else:
             print(f"{player.name} Make Suggestion: You are in the {player.location.name}")
-            suggestion = self.promptSuggestion()
+            suggestion = self.promptHumanSuggestion()
             print(suggestion)
             shown_card = self.proposeSuggestion(suggestion, self.nextPlayer(player))
             if shown_card is None:
                 print("No player could show a card")
+                self.updateAIs("passed", suggestion, None)
             else:
-                print(f"{shown_card[0]} shows {shown_card[1]}")
+                print(f"{shown_card[0].name} shows {shown_card[1].name}")
+                self.updateAIs("showMe", shown_card[0], shown_card[1])
+                self.updateAIs("show", shown_card[0], suggestion)
+
 
         self.turn_index = self.nextPlayer(player).turn_index
 
-    def promptSuggestion(self):
-        if self.players[self.turn_index].is_ai: return self.promptAISuggestion()
-        else: return self.promptHumanSuggestion()
-
-    def promptAISuggestion(self):
-        return None
+    def promptAISuggestion(self, location):
+        return self.players[self.turn_index].ai_agent.makeSuggestion(location);
 
     def promptHumanSuggestion(self):
         for weapon in list(WeaponEnum):
@@ -145,20 +175,22 @@ class ClueGame():
                         showable_cards.append(card)
             if len(showable_cards) == 0:
                 print(f"{player.name} skips")
+                self.updateAIs("skip", player, suggestion)
                 player = self.nextPlayer(player)
             else:
                return self.promptShowCard(player, showable_cards)
         return None
 
     def promptShowCard(self, player, showable_cards):
-        if self.players[self.turn_index].is_ai: return self.promptAIShowCard(player, showable_cards)
+        if player.is_ai: return self.promptAIShowCard(player, showable_cards)
         else: return self.promptHumanShowCard(player, showable_cards)
 
     def promptAIShowCard(self, player, showable_cards):
-        return None
+        #Todo: determine the best card to show
+        return (player, showable_cards[0])
 
     def promptHumanShowCard(self, player, showable_cards):
-        if len(showable_cards) == 1: return (player.name, showable_cards[0].name)
+        if len(showable_cards) == 1: return (player, showable_cards[0])
         print(f"{player.name} choose a card to show...")
         for card in showable_cards:
             print(f"{card.name}: {card.value},", end="\t\t")
@@ -168,7 +200,7 @@ class ClueGame():
 
         for card in showable_cards:
             if card.value == int(card_input):
-                return (player.name, card.name)
+                return (player, card)
 
         return "Error choosing card to show"
 
@@ -177,6 +209,11 @@ class ClueGame():
             return self.players[0]
         else:
             return self.players[player.turn_index+1]
+
+    def updateAIs(self, code, x, y):
+        for player in self.players:
+            if player.is_ai:
+                player.ai_agent.update(code, x, y, self.turn_index)
 
 def printBoard():
     print("""
