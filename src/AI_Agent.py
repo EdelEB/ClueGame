@@ -14,6 +14,7 @@ class AI_Agent():
         for player in clue_game.players:
             if turn_index == player.turn_index: continue
             self.mock_players.append(MockPlayer(player.name, player.turn_index, hand+clue_game.face_up_cards))
+        self.name = clue_game.players[turn_index].name
 
     def getAIMove(self, location, moves):
         combos = self.calcPossibleCombos()
@@ -24,7 +25,14 @@ class AI_Agent():
             for loc in moves:
                 if loc in self.valid_cards:
                     return loc.value
-        return -1
+            for loc in moves:
+                if loc == RoomEnum.START: continue
+                for room in room_access[loc]:
+                    if room in self.valid_cards:
+                        return loc.value
+            for loc in moves:
+                if loc != RoomEnum.START:
+                    return loc.value
 
     def makeSuggestion(self, location):
         combos = self.calcPossibleCombos()
@@ -36,8 +44,12 @@ class AI_Agent():
                 return combo
 
         print(f"ERROR finding finding suggestion in current Location {location}")
-        new_suggestion = Suggestion(combos[0].character, combos[0].weapon, location)
-        print(new_suggestion)
+        try:
+            new_suggestion = Suggestion(combos[0].character, combos[0].weapon, location)
+            print(new_suggestion)
+        except IndexError:
+            print(f"IndexError on combos: {combos}")
+            print(f"Valid cards: {[card.name for card in self.valid_cards]}")
         return new_suggestion
 
     def update(self, code, x, y, turn_index):
@@ -51,9 +63,10 @@ class AI_Agent():
                 except: pass
         elif code == "show" and self.turn_index != turn_index:
             player = x
+            if player.turn_index == self.turn_index: return
             suggestion_arr = [y.weapon, y.room, y.character]
             for mock in self.mock_players:
-                if mock.turn_index == turn_index:
+                if mock.turn_index == player.turn_index:
                     possiblities = [card for card in suggestion_arr if card not in mock.not_in_hand]
                     if len(possiblities) == 1:
                         mock.hand.append(possiblities[0])
@@ -68,26 +81,16 @@ class AI_Agent():
                         mock.not_in_hand.append(card)
                         try: mock.maybe_in_hand.remove(card)
                         except: pass
-
-        elif code == "passed":
-            suggestion = x
-            for mock in self.mock_players:
-                mock.not_in_hand.append(suggestion.weapon)
-                mock.not_in_hand.append(suggestion.room)
-                mock.not_in_hand.append(suggestion.character)
-                try: mock.maybe_in_hand.remove(suggestion.weapon)
-                except: pass
-                try: mock.maybe_in_hand.remove(suggestion.room)
-                except: pass
-                try: mock.maybe_in_hand.remove(suggestion.character)
-                except: pass
         self.updateValidCardsWithMocks()
         self.analyzeData()
 
     def updateValidCardsWithMocks(self):
         for mock in self.mock_players:
             for card in mock.hand:
-                try: self.valid_cards.remove(card)
+                try:
+                    self.valid_cards.remove(card)
+                    print(f"{self.name} invalidates {card.name}")
+                    #print(f"{self.name} valid cards: {[card.name for card in self.valid_cards]}")
                 except: pass
 
     def analyzeData(self):

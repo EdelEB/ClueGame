@@ -75,6 +75,7 @@ class ClueGame():
         if self.players[self.turn_index].location == RoomEnum.START:
             print(f"{player.name}(AI) Making Final Accusation:")
             suggestion = self.promptAISuggestion(player.location)
+            print(suggestion)
             if suggestion == self.solution:
                 self.winner = self.players[self.turn_index]
             else:
@@ -86,9 +87,8 @@ class ClueGame():
             shown_card = self.proposeSuggestion(suggestion, self.nextPlayer(player))
             if shown_card is None:
                 print("No player could show a card")
-                self.updateAIs("passed", suggestion, None)
             else:
-                print(f"{shown_card[0].name} shows {shown_card[1].name}")
+                print(f"{shown_card[0].name} shows {shown_card[1].name} to {self.players[self.turn_index].name}")
                 self.updateAIs("showMe", shown_card[0], shown_card[1])
                 self.updateAIs("show", shown_card[0], suggestion)
 
@@ -127,9 +127,8 @@ class ClueGame():
             shown_card = self.proposeSuggestion(suggestion, self.nextPlayer(player))
             if shown_card is None:
                 print("No player could show a card")
-                self.updateAIs("passed", suggestion, None)
             else:
-                print(f"{shown_card[0].name} shows {shown_card[1].name}")
+                print(f"{shown_card[0].name} shows {shown_card[1].name} to {self.players[self.turn_index].name}")
                 self.updateAIs("showMe", shown_card[0], shown_card[1])
                 self.updateAIs("show", shown_card[0], suggestion)
 
