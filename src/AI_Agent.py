@@ -4,8 +4,6 @@ from ClueGame import *
 
 class AI_Agent():
     def __init__(self, hand, turn_index, clue_game):
-        self.hand = hand
-        self.shown_hand = []
         self.turn_index = turn_index
         self.valid_cards = all_cards.copy()
         for card in hand + clue_game.face_up_cards:
@@ -59,8 +57,6 @@ class AI_Agent():
             for mock in self.mock_players:
                 if mock.turn_index == player.turn_index: mock.hand.append(card)
                 else: mock.not_in_hand.append(card)
-                try: mock.maybe_in_hand.remove(card)
-                except: pass
         elif code == "show" and self.turn_index != turn_index:
             player = x
             if player.turn_index == self.turn_index: return
@@ -70,8 +66,6 @@ class AI_Agent():
                     possiblities = [card for card in suggestion_arr if card not in mock.not_in_hand]
                     if len(possiblities) == 1:
                         mock.hand.append(possiblities[0])
-                        try: player.maybe_in_hand.remove(possiblities[0])
-                        except: pass
         elif code == "skip" and self.turn_index != turn_index:
             player = x
             suggestion = y
@@ -79,8 +73,6 @@ class AI_Agent():
                 if mock.turn_index == player.turn_index:
                     for card in [suggestion.weapon, suggestion.room, suggestion.character]:
                         mock.not_in_hand.append(card)
-                        try: mock.maybe_in_hand.remove(card)
-                        except: pass
         self.updateValidCardsWithMocks()
         self.analyzeData()
 
@@ -115,15 +107,7 @@ class AI_Agent():
             elif isinstance(card, WeaponEnum): weapons.append(card)
             else: characters.append(card)
 
-        suggestions = [
-            Suggestion(character, weapon, room) for character, weapon, room in product(characters, weapons, rooms)
-        ]
-
-        count = 1;
-        for suggestion in suggestions:
-            #print(f"{count} {suggestion}")
-            count+=1
-
+        suggestions = [Suggestion(character, weapon, room) for character, weapon, room in product(characters, weapons, rooms)]
         return suggestions
 
 class MockPlayer():
@@ -132,4 +116,3 @@ class MockPlayer():
         self.turn_index = turn_index
         self.hand = []
         self.not_in_hand = not_in_hand
-        self.maybe_in_hand = [card for card in all_cards if card not in not_in_hand]

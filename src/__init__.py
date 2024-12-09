@@ -17,6 +17,7 @@ def main():
 
     while game.winner is None:
         game.printGameState()
+        #input("\nClick Enter to continue")
 
     print(f"Game Over Winner: {game.winner.name}\nFinal answer: {game.solution}")
 
